@@ -35,6 +35,7 @@ public class Cursor : MonoBehaviour
     public void InstantiateObject()
     {
         _prevRotation.x = 0;
+        _prevRotation.z = 0;
         _prevRotation.y += 180;
         Instantiate(objectToSpawn, _prevLocation, Quaternion.Euler(_prevRotation));
     }

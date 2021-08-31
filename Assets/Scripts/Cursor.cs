@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
@@ -10,6 +11,10 @@ public class Cursor : MonoBehaviour
     private Vector3 _prevLocation, _prevRotation;
     [SerializeField] private GameObject objectToSpawn;
     private List<GameObject> _spawnedObjectList = new List<GameObject>();
+    [HideInInspector] public GameObject currentObject;
+    public bool isCursorVisible = false;
+    public UnityEvent onCursorVisible, onCursorHide;
+    [SerializeField] private MovementManager movementManager;
 
     public enum SpawnMode
     {
@@ -31,9 +36,19 @@ public class Cursor : MonoBehaviour
         var arRaycastHits = new List<ARRaycastHit>();
         if (raycastManager.Raycast(screenCenter, arRaycastHits, TrackableType.Planes))
         {
+            if (!isCursorVisible)
+            {
+                isCursorVisible = true;
+                onCursorVisible.Invoke();
+            }
             _prevLocation = arRaycastHits[0].pose.position;
             _prevRotation = arRaycastHits[0].pose.rotation.eulerAngles;
             transform.position = _prevLocation;
+        }
+        else if (isCursorVisible)
+        {
+            isCursorVisible = false;
+            onCursorHide.Invoke();
         }
     }
 
@@ -44,8 +59,9 @@ public class Cursor : MonoBehaviour
         _prevRotation.y += 180;
         if (spawnMode == SpawnMode.Single)
             DestroyAllSpawnedObjects();
-        var dancingGirl = Instantiate(objectToSpawn, _prevLocation, Quaternion.Euler(_prevRotation));
-        _spawnedObjectList.Add(dancingGirl);
+        currentObject = Instantiate(objectToSpawn, _prevLocation, Quaternion.Euler(_prevRotation));
+        _spawnedObjectList.Add(currentObject);
+        movementManager.MovingTarget = currentObject.transform;
     }
 
     public void DestroyAllSpawnedObjects()
@@ -55,6 +71,7 @@ public class Cursor : MonoBehaviour
             Destroy(dancingGirl);
         }
         _spawnedObjectList.Clear();
+        movementManager.MovingTarget = null;
     }
 
     public void SetSpawnMode(SpawnMode newSpawnMode)

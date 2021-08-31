@@ -9,7 +9,15 @@ public class Cursor : MonoBehaviour
     private Camera _cam;
     private Vector3 _prevLocation, _prevRotation;
     [SerializeField] private GameObject objectToSpawn;
-    
+    private List<GameObject> _spawnedObjectList = new List<GameObject>();
+
+    public enum SpawnMode
+    {
+        Multiple,
+        Single
+    }
+    [SerializeField] private SpawnMode spawnMode = SpawnMode.Multiple;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -27,9 +35,6 @@ public class Cursor : MonoBehaviour
             _prevRotation = arRaycastHits[0].pose.rotation.eulerAngles;
             transform.position = _prevLocation;
         }
-
-        // if (!Input.GetMouseButtonDown(0)) return;
-        // InstantiateObject();
     }
 
     public void InstantiateObject()
@@ -37,6 +42,28 @@ public class Cursor : MonoBehaviour
         _prevRotation.x = 0;
         _prevRotation.z = 0;
         _prevRotation.y += 180;
-        Instantiate(objectToSpawn, _prevLocation, Quaternion.Euler(_prevRotation));
+        if (spawnMode == SpawnMode.Single)
+            DestroyAllSpawnedObjects();
+        var dancingGirl = Instantiate(objectToSpawn, _prevLocation, Quaternion.Euler(_prevRotation));
+        _spawnedObjectList.Add(dancingGirl);
+    }
+
+    public void DestroyAllSpawnedObjects()
+    {
+        foreach (var dancingGirl in _spawnedObjectList)
+        {
+            Destroy(dancingGirl);
+        }
+        _spawnedObjectList.Clear();
+    }
+
+    public void SetSpawnMode(SpawnMode newSpawnMode)
+    {
+        this.spawnMode = newSpawnMode;
+    }
+
+    public SpawnMode GetSpawnMode()
+    {
+        return spawnMode;
     }
 }

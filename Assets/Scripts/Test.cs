@@ -13,11 +13,16 @@ public class Test : MonoBehaviour
     {
         _input.x = Input.GetAxis("Horizontal");
         _input.z = Input.GetAxis("Vertical");
+        var offsetAngle = Mathf.Atan2(_input.x, _input.z) * Mathf.Rad2Deg;
+        // Debug.Log(offsetAngle);
 
-        var camRotation = camTransform.eulerAngles;
-        camRotation.x = 0;
-
-        transform.eulerAngles = Vector3.Lerp(transform.eulerAngles, camRotation, rotationSpeed * Time.deltaTime);
-        transform.Translate(_input * speed * Time.deltaTime);
+        var finalRotation = camTransform.eulerAngles;
+        Debug.Log(finalRotation.ToString());
+        finalRotation.y += offsetAngle;
+        finalRotation.x = 0;
+        finalRotation.z = 0;
+        transform.eulerAngles = finalRotation;
+        // transform.eulerAngles = Vector3.Lerp(transform.eulerAngles, finalRotation, rotationSpeed * Time.deltaTime);
+        transform.Translate(_input * speed * Time.deltaTime, Space.World);
     }
 }

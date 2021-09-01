@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.XR.ARFoundation;
@@ -15,6 +16,7 @@ public class Cursor : MonoBehaviour
     public bool isCursorVisible = false;
     public UnityEvent onCursorVisible, onCursorHide;
     [SerializeField] private MovementManager movementManager;
+    public static Animator animator;
 
     public enum SpawnMode
     {
@@ -60,8 +62,12 @@ public class Cursor : MonoBehaviour
         if (spawnMode == SpawnMode.Single)
             DestroyAllSpawnedObjects();
         currentObject = Instantiate(objectToSpawn, _prevLocation, Quaternion.Euler(_prevRotation));
+        animator = currentObject.GetComponent<Animator>();
         _spawnedObjectList.Add(currentObject);
         movementManager.MovingTarget = currentObject.transform;
+        if (spawnMode == SpawnMode.Single) {
+            animator.SetLayerWeight(1, 1);
+        }
     }
 
     public void DestroyAllSpawnedObjects()

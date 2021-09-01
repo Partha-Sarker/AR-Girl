@@ -525,6 +525,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cursor: {fileID: 1928387835}
   spawnModeText: {fileID: 192531037}
+  joyStick: {fileID: 1414304421}
 --- !u!1 &388525029
 GameObject:
   m_ObjectHideFlags: 0
@@ -1503,9 +1504,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69cf7d0e58d146f6b9a9467727b06e8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cursor: {fileID: 1928387835}
   camTransform: {fileID: 22732924}
-  playerInput: {fileID: 0}
-  speed: 2
+  playerInput: {fileID: 91170656}
+  speed: 0.75
   rotationSpeed: 20
 --- !u!4 &2095566041
 Transform:

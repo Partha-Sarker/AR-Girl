@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class MovementManager : MonoBehaviour
@@ -29,8 +28,8 @@ public class MovementManager : MonoBehaviour
 
     public void Move(InputAction.CallbackContext context)
     {
-        if (!_inputEnabled || _movingTarget == null)
-            return;
+        // if (!_inputEnabled || _movingTarget == null)
+        //     return;
         var inputVector = context.ReadValue<Vector2>();
 
         if (inputVector.magnitude < .1)
@@ -39,19 +38,24 @@ public class MovementManager : MonoBehaviour
             inputVector.y = 0;
         }
 
-        var offsetAngle = Mathf.Atan2(inputVector.x, inputVector.y);
+        if (inputVector.magnitude > 1)
+            inputVector = inputVector.normalized;
+
+        var offsetAngle = Mathf.Atan2(inputVector.x, inputVector.y) * Mathf.Rad2Deg;
         var finalRotation = camTransform.eulerAngles;
         
         finalRotation.y += offsetAngle;
         finalRotation.x = 0;
         finalRotation.z = 0;
 
-        _movingTarget.eulerAngles = Vector3.Lerp(_movingTarget.eulerAngles, finalRotation, rotationSpeed * Time.deltaTime);
-        _movingTarget.Translate(inputVector * speed * Time.deltaTime);
-        if (inputVector.magnitude > 1)
-            inputVector = inputVector.normalized;
+        if (_movingTarget != null)
+        {
+            _movingTarget.eulerAngles = finalRotation;
+            _movingTarget.Translate(Vector3.forward * speed * Time.deltaTime);
+        }
         
         if (Cursor.animator != null)
             Cursor.animator.SetFloat("speed", inputVector.magnitude);
+        Helper.Log(inputVector.normalized.magnitude);
     }
 }

@@ -11,18 +11,19 @@ public class Test : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        _input.x = Input.GetAxis("Horizontal");
-        _input.z = Input.GetAxis("Vertical");
+        _input.x = Input.GetAxisRaw("Horizontal");
+        _input.z = Input.GetAxisRaw("Vertical");
+        
+        if (_input.magnitude < .1)
+            return;
+        
         var offsetAngle = Mathf.Atan2(_input.x, _input.z) * Mathf.Rad2Deg;
-        // Debug.Log(offsetAngle);
 
         var finalRotation = camTransform.eulerAngles;
-        Debug.Log(finalRotation.ToString());
         finalRotation.y += offsetAngle;
         finalRotation.x = 0;
         finalRotation.z = 0;
         transform.eulerAngles = finalRotation;
-        // transform.eulerAngles = Vector3.Lerp(transform.eulerAngles, finalRotation, rotationSpeed * Time.deltaTime);
-        transform.Translate(_input * speed * Time.deltaTime, Space.World);
+        transform.Translate(Vector3.forward * speed * Time.deltaTime);
     }
 }

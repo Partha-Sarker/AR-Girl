@@ -216,7 +216,7 @@ MonoBehaviour:
   m_FocusMode: -1
   m_LightEstimationMode: -1
   m_AutoFocus: 1
-  m_LightEstimation: 0
+  m_LightEstimation: -1
   m_FacingDirection: 1
 --- !u!114 &22732923
 MonoBehaviour:
@@ -231,7 +231,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Device: 0
-  m_PoseSource: 6
+  m_PoseSource: 2
   m_PoseProviderComponent: {fileID: 0}
   m_TrackingType: 0
   m_UpdateType: 0
@@ -1507,7 +1507,7 @@ MonoBehaviour:
   cursor: {fileID: 1928387835}
   camTransform: {fileID: 22732924}
   playerInput: {fileID: 91170656}
-  speed: 0.75
+  speed: 0.4
   rotationSpeed: 20
 --- !u!4 &2095566041
 Transform:

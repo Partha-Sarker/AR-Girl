@@ -1,35 +1,44 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class MovementManager : MonoBehaviour
 {
     [SerializeField] private Cursor cursor;
-    [SerializeField] Transform camTransform;
-    private bool _inputEnabled;
-    [SerializeField] private PlayerInput playerInput;
+    [SerializeField] private Transform camTransform;
     private Transform _movingTarget;
-    [Range(0, 100)]
-    public float speed = 10, rotationSpeed = 10;
+    private Animator _animator;
+    [Range(0, 20)]
+    public float speed = 10;
+
+    private void Start()
+    {
+        cursor.OnObjectSpawn += SetGameObjectAndAnimator;
+        cursor.OnObjectDestroy += ResetGameObjectAndAnimator;
+    }
 
     public Transform MovingTarget
     {
         set => _movingTarget = value;
     }
-    
-    public void EnableInput()
+
+    public void SetGameObjectAndAnimator(GameObject currentObject)
     {
-        _inputEnabled = true;
+        _movingTarget = currentObject.transform;
+        _animator = currentObject.GetComponent<Animator>();
     }
 
-    public void DisableInput()
+    public void ResetGameObjectAndAnimator()
     {
-        _inputEnabled = false;
+        _movingTarget = null;
+        _animator = null;
     }
 
     public void Move(InputAction.CallbackContext context)
     {
-        // if (!_inputEnabled || _movingTarget == null)
-        //     return;
+        if (_movingTarget == null)
+            return;
+        
         var inputVector = context.ReadValue<Vector2>();
 
         if (inputVector.magnitude < .1)
@@ -48,14 +57,9 @@ public class MovementManager : MonoBehaviour
         finalRotation.x = 0;
         finalRotation.z = 0;
 
-        if (_movingTarget != null)
-        {
-            _movingTarget.eulerAngles = finalRotation;
-            _movingTarget.Translate(Vector3.forward * speed * Time.deltaTime);
-        }
+        _movingTarget.eulerAngles = finalRotation;
+        _movingTarget.Translate(Vector3.forward * speed * Time.deltaTime);
         
-        if (Cursor.animator != null)
-            Cursor.animator.SetFloat("speed", inputVector.magnitude);
-        Helper.Log(inputVector.normalized.magnitude);
+        _animator.SetFloat("speed", inputVector.magnitude);
     }
 }

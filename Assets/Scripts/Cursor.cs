@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.XR.ARFoundation;
@@ -8,85 +7,82 @@ using UnityEngine.XR.ARSubsystems;
 public class Cursor : MonoBehaviour
 {
     [SerializeField] private ARRaycastManager raycastManager;
-    private Camera _cam;
-    private Vector3 _prevLocation, _prevRotation;
-    [SerializeField] private GameObject objectToSpawn;
-    private List<GameObject> _spawnedObjectList = new List<GameObject>();
-    [HideInInspector] public GameObject currentObject;
-    public bool isCursorVisible = false;
-    public UnityEvent onCursorVisible, onCursorHide;
     [SerializeField] private MovementManager movementManager;
-    public static Animator animator;
-
-    public enum SpawnMode
+    [SerializeField] private Camera cam;
+    [SerializeField] private GameObject objectToSpawn;
+    [SerializeField] private MeshRenderer cursorRenderer;
+    
+    public UnityEvent onCursorAvailable, onCursorLost;
+    public delegate void VoidGameObject(GameObject s);
+    public delegate void VoidVoid();
+    public VoidGameObject OnObjectSpawn;
+    public VoidVoid OnObjectDestroy;
+    
+    public bool isCursorAvailable;
+    public Vector3 prevLocation, prevRotation;
+    
+    private GameObject _currentObject;
+    
+    private void Update()
     {
-        Multiple,
-        Single
-    }
-    [SerializeField] private SpawnMode spawnMode = SpawnMode.Multiple;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        _cam = Camera.main;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        var screenCenter = _cam.ViewportToScreenPoint(new Vector3(0.5f, 0.5f));
+        var screenCenter = cam.ViewportToScreenPoint(new Vector3(0.5f, 0.5f));
         var arRaycastHits = new List<ARRaycastHit>();
         if (raycastManager.Raycast(screenCenter, arRaycastHits, TrackableType.Planes))
         {
-            if (!isCursorVisible)
+            if (!isCursorAvailable)
             {
-                isCursorVisible = true;
-                onCursorVisible.Invoke();
+                isCursorAvailable = true;
+                onCursorAvailable.Invoke();
             }
-            _prevLocation = arRaycastHits[0].pose.position;
-            _prevRotation = arRaycastHits[0].pose.rotation.eulerAngles;
-            transform.position = _prevLocation;
+            prevLocation = arRaycastHits[0].pose.position;
+            prevRotation = arRaycastHits[0].pose.rotation.eulerAngles;
+            transform.position = prevLocation;
         }
-        else if (isCursorVisible)
+        else if (isCursorAvailable)
         {
-            isCursorVisible = false;
-            onCursorHide.Invoke();
+            isCursorAvailable = false;
+            onCursorLost.Invoke();
         }
     }
 
     public void InstantiateObject()
     {
-        _prevRotation.x = 0;
-        _prevRotation.z = 0;
-        _prevRotation.y += 180;
-        if (spawnMode == SpawnMode.Single)
-            DestroyAllSpawnedObjects();
-        currentObject = Instantiate(objectToSpawn, _prevLocation, Quaternion.Euler(_prevRotation));
-        animator = currentObject.GetComponent<Animator>();
-        _spawnedObjectList.Add(currentObject);
-        movementManager.MovingTarget = currentObject.transform;
-        if (spawnMode == SpawnMode.Single) {
-            animator.SetLayerWeight(1, 1);
-        }
-    }
-
-    public void DestroyAllSpawnedObjects()
-    {
-        foreach (var dancingGirl in _spawnedObjectList)
+        prevRotation.x = 0;
+        prevRotation.z = 0;
+        prevRotation.y += 180;
+        if (_currentObject != null)
         {
-            Destroy(dancingGirl);
+            _currentObject.transform.position = prevLocation;
+            _currentObject.transform.eulerAngles = prevRotation;
         }
-        _spawnedObjectList.Clear();
-        movementManager.MovingTarget = null;
+        else
+        {
+            _currentObject = Instantiate(objectToSpawn, prevLocation, Quaternion.Euler(prevRotation));
+            OnObjectSpawn(_currentObject);
+        }
+        movementManager.MovingTarget = _currentObject.transform;
     }
 
-    public void SetSpawnMode(SpawnMode newSpawnMode)
+    public void DestroyObject()
     {
-        this.spawnMode = newSpawnMode;
+        if (_currentObject == null)
+            return;
+        Destroy(_currentObject);
+        OnObjectDestroy();
     }
 
-    public SpawnMode GetSpawnMode()
+    public bool IsCursorVisible()
     {
-        return spawnMode;
+        return cursorRenderer.enabled;
+    }
+
+    public void ShowCursor()
+    {
+        cursorRenderer.enabled = true;
+    }
+
+    public void HideCursor()
+    {
+        cursorRenderer.enabled = false;
     }
 }

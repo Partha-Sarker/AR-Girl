@@ -17,11 +17,6 @@ public class MovementManager : MonoBehaviour
         cursor.OnObjectDestroy += ResetGameObjectAndAnimator;
     }
 
-    public Transform MovingTarget
-    {
-        set => _movingTarget = value;
-    }
-
     public void SetGameObjectAndAnimator(GameObject currentObject)
     {
         _movingTarget = currentObject.transform;
@@ -41,14 +36,10 @@ public class MovementManager : MonoBehaviour
         
         var inputVector = context.ReadValue<Vector2>();
 
-        if (inputVector.magnitude < .1)
-        {
-            inputVector.x = 0;
-            inputVector.y = 0;
-        }
-
         if (inputVector.magnitude > 1)
             inputVector = inputVector.normalized;
+        
+        _animator.SetFloat("speed", inputVector.magnitude);
 
         var offsetAngle = Mathf.Atan2(inputVector.x, inputVector.y) * Mathf.Rad2Deg;
         var finalRotation = camTransform.eulerAngles;
@@ -56,10 +47,10 @@ public class MovementManager : MonoBehaviour
         finalRotation.y += offsetAngle;
         finalRotation.x = 0;
         finalRotation.z = 0;
-
+        
+        if (inputVector.magnitude < .1)
+            return;
         _movingTarget.eulerAngles = finalRotation;
         _movingTarget.Translate(Vector3.forward * speed * Time.deltaTime);
-        
-        _animator.SetFloat("speed", inputVector.magnitude);
     }
 }

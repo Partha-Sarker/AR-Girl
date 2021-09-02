@@ -7,19 +7,18 @@ using UnityEngine.XR.ARSubsystems;
 public class Cursor : MonoBehaviour
 {
     [SerializeField] private ARRaycastManager raycastManager;
-    [SerializeField] private MovementManager movementManager;
     [SerializeField] private Camera cam;
     [SerializeField] private GameObject objectToSpawn;
     [SerializeField] private MeshRenderer cursorRenderer;
     
-    public UnityEvent onCursorAvailable, onCursorLost;
+    public UnityEvent onCursorAvailable, onCursorLost, onObjectSpawnUnity, onObjectDestroyUnity;
     public delegate void VoidGameObject(GameObject s);
     public delegate void VoidVoid();
     public VoidGameObject OnObjectSpawn;
     public VoidVoid OnObjectDestroy;
     
-    public bool isCursorAvailable;
-    public Vector3 prevLocation, prevRotation;
+    private bool _isCursorAvailable;
+    private Vector3 _prevLocation, _prevRotation;
     
     private GameObject _currentObject;
     
@@ -29,38 +28,38 @@ public class Cursor : MonoBehaviour
         var arRaycastHits = new List<ARRaycastHit>();
         if (raycastManager.Raycast(screenCenter, arRaycastHits, TrackableType.Planes))
         {
-            if (!isCursorAvailable)
+            if (!_isCursorAvailable)
             {
-                isCursorAvailable = true;
+                _isCursorAvailable = true;
                 onCursorAvailable.Invoke();
             }
-            prevLocation = arRaycastHits[0].pose.position;
-            prevRotation = arRaycastHits[0].pose.rotation.eulerAngles;
-            transform.position = prevLocation;
+            _prevLocation = arRaycastHits[0].pose.position;
+            _prevRotation = arRaycastHits[0].pose.rotation.eulerAngles;
+            transform.position = _prevLocation;
         }
-        else if (isCursorAvailable)
+        else if (_isCursorAvailable)
         {
-            isCursorAvailable = false;
+            _isCursorAvailable = false;
             onCursorLost.Invoke();
         }
     }
 
     public void InstantiateObject()
-    {
-        prevRotation.x = 0;
-        prevRotation.z = 0;
-        prevRotation.y += 180;
+    { 
+        _prevRotation.x = 0;
+        _prevRotation.z = 0;
+        _prevRotation.y += 180;
         if (_currentObject != null)
         {
-            _currentObject.transform.position = prevLocation;
-            _currentObject.transform.eulerAngles = prevRotation;
+            _currentObject.transform.position = _prevLocation;
+            _currentObject.transform.eulerAngles = _prevRotation;
         }
         else
         {
-            _currentObject = Instantiate(objectToSpawn, prevLocation, Quaternion.Euler(prevRotation));
+            _currentObject = Instantiate(objectToSpawn, _prevLocation, Quaternion.Euler(_prevRotation));
             OnObjectSpawn(_currentObject);
+            onObjectSpawnUnity.Invoke();
         }
-        movementManager.MovingTarget = _currentObject.transform;
     }
 
     public void DestroyObject()
@@ -69,11 +68,17 @@ public class Cursor : MonoBehaviour
             return;
         Destroy(_currentObject);
         OnObjectDestroy();
+        onObjectDestroyUnity.Invoke();
     }
 
     public bool IsCursorVisible()
     {
         return cursorRenderer.enabled;
+    }
+
+    public bool IsCurrentObjectNull()
+    {
+        return _currentObject == null;
     }
 
     public void ShowCursor()
